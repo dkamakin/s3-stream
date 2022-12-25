@@ -64,10 +64,7 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
 
     @Override
     public void close() {
-        if (isNotEmpty()) {
-            upload();
-        }
-
+        upload();
         uploadHandler.close();
     }
 
@@ -82,9 +79,10 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
     }
 
     private void upload() {
-        LOG.info("Flushing data, size: {}", size());
-
-        uploadHandler.upload(RequestBody.fromInputStream(buffer.redirect(), buffer.size()));
+        if (isNotEmpty()) {
+            LOG.info("Uploading data, size: {}", size());
+            uploadHandler.upload(RequestBody.fromInputStream(buffer.redirect(), buffer.size()));
+        }
     }
 
     private void resetBuffer() {
