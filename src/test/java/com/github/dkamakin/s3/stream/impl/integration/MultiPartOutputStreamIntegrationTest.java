@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,6 +21,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 
+@Disabled("Manual")
 class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
 
     static class ChunkSizeArgument {

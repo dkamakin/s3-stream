@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.github.dkamakin.s3.stream.IMultiPartOutputStream;
 import com.github.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
@@ -86,6 +87,21 @@ class MultiPartOutputStreamTest {
 
         verify(uploadHandler).close();
         verify(uploadHandler, never()).upload(any());
+    }
+
+    @Test
+    void flush_EmptyBuffer_NoAction() {
+        target.flush();
+
+        verifyNoInteractions(uploadHandler);
+    }
+
+    @Test
+    void flush_BufferIsNotEmpty_FlushAllData() {
+        target.write(new byte[1]);
+        target.flush();
+
+        verify(uploadHandler).upload(any());
     }
 
     @Test
