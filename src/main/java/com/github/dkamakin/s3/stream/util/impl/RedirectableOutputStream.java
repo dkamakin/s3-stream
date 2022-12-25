@@ -2,7 +2,6 @@ package com.github.dkamakin.s3.stream.util.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
@@ -22,7 +21,7 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
         return count;
     }
 
-    public InputStream redirect() {
+    public ByteArrayInputStream redirect() {
         return new ByteArrayInputStream(buf, 0, count);
     }
 }

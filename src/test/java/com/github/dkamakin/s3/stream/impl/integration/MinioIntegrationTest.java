@@ -1,6 +1,5 @@
 package com.github.dkamakin.s3.stream.impl.integration;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
@@ -15,7 +14,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 @Testcontainers
 abstract class MinioIntegrationTest {
@@ -69,25 +67,6 @@ abstract class MinioIntegrationTest {
 
     private static void createBucket() {
         s3Client.createBucket(CreateBucketRequest.builder().bucket(Data.BUCKET).build());
-    }
-
-    public byte[] download(String key, int length) {
-        byte[] result = new byte[length];
-
-        try (InputStream stream = download(key)) {
-            stream.read(result);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        return result;
-    }
-
-    public InputStream download(String key) {
-        return s3Client.getObject(GetObjectRequest.builder()
-                                                  .bucket(Data.BUCKET)
-                                                  .key(key)
-                                                  .build());
     }
 
 }

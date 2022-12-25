@@ -6,32 +6,26 @@ import com.github.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
 import com.github.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
 import com.github.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
+import java.io.OutputStream;
+import java.util.Objects;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.OutputStream;
-import java.util.Objects;
-import java.util.function.Supplier;
 
 @NotThreadSafe
 public class MultiPartOutputStream extends OutputStream implements IMultiPartOutputStream {
 
     private static final Logger LOG = LoggerFactory.getLogger(MultiPartOutputStream.class);
 
-    private final IMultiPartUploadHandler            uploadHandler;
-    private final Bytes                              minPartSize;
-    private final Supplier<RedirectableOutputStream> bufferSupplier;
-    private       RedirectableOutputStream           buffer;
+    private final IMultiPartUploadHandler  uploadHandler;
+    private final Bytes                    minPartSize;
+    private       RedirectableOutputStream buffer;
 
-    protected MultiPartOutputStream(Bytes minPartSize,
-                                    Supplier<RedirectableOutputStream> bufferSupplier,
-                                    IMultiPartUploadHandler uploadHandler) {
-        this.uploadHandler  = uploadHandler;
-        this.bufferSupplier = bufferSupplier;
-        this.buffer         = bufferSupplier.get();
-        this.minPartSize    = minPartSize;
+    protected MultiPartOutputStream(Bytes minPartSize, IMultiPartUploadHandler uploadHandler) {
+        this.uploadHandler = uploadHandler;
+        this.buffer        = new RedirectableOutputStream(minPartSize);
+        this.minPartSize   = minPartSize;
     }
 
     @Override
@@ -94,7 +88,7 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
     }
 
     private void resetBuffer() {
-        buffer = bufferSupplier.get();
+        buffer = new RedirectableOutputStream(minPartSize);
     }
 
     public static IMultiPartOutputStreamBuilder builder() {

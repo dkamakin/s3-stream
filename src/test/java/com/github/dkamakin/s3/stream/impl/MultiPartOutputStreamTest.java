@@ -11,7 +11,6 @@ import com.github.dkamakin.s3.stream.IMultiPartOutputStream;
 import com.github.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
 import com.github.dkamakin.s3.stream.impl.MultiPartOutputStreamTest.Data.WriteArguments;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
-import com.github.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
 import com.google.common.base.MoreObjects;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,11 +58,7 @@ class MultiPartOutputStreamTest {
 
     @BeforeEach
     public void setUp() {
-        target = new MultiPartOutputStream(Data.BUFFER_SIZE, this::createBuffer, uploadHandler);
-    }
-
-    private RedirectableOutputStream createBuffer() {
-        return new RedirectableOutputStream(Data.BUFFER_SIZE);
+        target = new MultiPartOutputStream(Data.BUFFER_SIZE, uploadHandler);
     }
 
     static Stream<byte[]> streamArraysOverflowsBufferSize() {

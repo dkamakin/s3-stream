@@ -7,10 +7,8 @@ import com.github.dkamakin.s3.stream.IMultiPartOutputStreamBuilder;
 import com.github.dkamakin.s3.stream.handler.impl.MultiPartUploadHandler;
 import com.github.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
-import com.github.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
 import com.github.dkamakin.s3.stream.util.impl.Validator;
 import java.util.Optional;
-import java.util.function.Supplier;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuilder {
@@ -20,11 +18,10 @@ public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuild
         public static final Bytes S3_MIN_PART_SIZE = Bytes.fromMb(5);
     }
 
-    private S3Client                           s3Client;
-    private String                             bucketName;
-    private String                             key;
-    private Bytes                              minPartSize;
-    private Supplier<RedirectableOutputStream> bufferSupplier;
+    private S3Client s3Client;
+    private String   bucketName;
+    private String   key;
+    private Bytes    minPartSize;
 
     @Override
     public IMultiPartOutputStreamBuilder withClient(S3Client s3Client) {
@@ -51,28 +48,16 @@ public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuild
     }
 
     @Override
-    public IMultiPartOutputStreamBuilder withBuffer(Supplier<RedirectableOutputStream> streamSupplier) {
-        this.bufferSupplier = streamSupplier;
-        return this;
-    }
-
-    @Override
     public IMultiPartOutputStream build() {
-        minPartSize    = Optional.ofNullable(minPartSize).map(this::validate).orElse(S3_MIN_PART_SIZE);
-        bufferSupplier = Optional.ofNullable(bufferSupplier).orElseGet(this::defaultBufferSupplier);
+        minPartSize = Optional.ofNullable(minPartSize).map(this::validate).orElse(S3_MIN_PART_SIZE);
 
         return new MultiPartOutputStream(minPartSize,
-                                         bufferSupplier,
                                          new MultiPartUploadHandler(new S3FileDescriptor(bucketName, key, s3Client)));
     }
 
     private Bytes validate(Bytes minPartSize) {
         Validator.ifValue(minPartSize).lessThan(S3_MIN_PART_SIZE).thenThrow(this::illegalPartSize);
         return minPartSize;
-    }
-
-    private Supplier<RedirectableOutputStream> defaultBufferSupplier() {
-        return () -> new RedirectableOutputStream(minPartSize);
     }
 
     private IllegalArgumentException illegalPartSize() {

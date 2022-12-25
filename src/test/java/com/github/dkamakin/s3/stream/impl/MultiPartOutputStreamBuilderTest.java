@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.github.dkamakin.s3.stream.IMultiPartOutputStreamBuilder;
 import com.github.dkamakin.s3.stream.impl.MultiPartOutputStreamBuilder.Constant;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
-import com.github.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -66,7 +65,6 @@ class MultiPartOutputStreamBuilderTest {
                                                   .forKey(Data.KEY)
                                                   .forBucket(Data.BUCKET)
                                                   .withClient(s3Client)
-                                                  .withBuffer(() -> new RedirectableOutputStream(minPartSize))
                                                   .setMinPartSize(minPartSize)
                                                   .build())
             .doesNotThrowAnyException();
