@@ -17,8 +17,18 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
     }
 
     @Override
+    public void write(byte[] b) {
+        super.write(b, 0, b.length);
+    }
+
+    @Override
     public int size() {
         return count;
+    }
+
+    @Override
+    public byte[] toByteArray() {
+        return buf;
     }
 
     public ByteArrayInputStream redirect() {
