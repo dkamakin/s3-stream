@@ -6,6 +6,7 @@ This is a wrapper over the AWS SDK v2 based on Java 8, which allows you to uploa
 save entire objects in the file system, as the official API suggests. The library offers InputStream and OutputStream
 with well-known methods for convenient work with your files.
 
+*JavaDoc is coming soon*
 
 # Examples
 
@@ -27,10 +28,10 @@ MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
 ```
 MultiPartInputStream stream(String key, String bucketName, S3Client s3Client) {
     return MultiPartInputStream.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .client(s3Client)
-                                .build();
+                               .bucket(bucketName)
+                               .key(key)
+                               .client(s3Client)
+                               .build();
 }
 ```
 
