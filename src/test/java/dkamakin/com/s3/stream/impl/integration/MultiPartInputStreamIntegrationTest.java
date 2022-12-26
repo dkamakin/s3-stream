@@ -2,7 +2,6 @@ package dkamakin.com.s3.stream.impl.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dkamakin.com.s3.stream.IMultiPartInputStream;
 import dkamakin.com.s3.stream.impl.MultiPartInputStream;
 import dkamakin.com.s3.stream.util.impl.Bytes;
 import dkamakin.com.s3.stream.util.impl.RedirectableOutputStream;
@@ -41,7 +40,7 @@ class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
 
         int actual;
 
-        try (IMultiPartInputStream stream = stream(key)) {
+        try (MultiPartInputStream stream = stream(key)) {
             actual = stream.read(new byte[10]);
         }
 

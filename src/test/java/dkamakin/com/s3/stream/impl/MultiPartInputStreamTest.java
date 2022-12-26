@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import dkamakin.com.s3.stream.IMultiPartInputStream;
 import dkamakin.com.s3.stream.handler.IMultiPartDownloadHandler;
 import dkamakin.com.s3.stream.util.impl.ByteRange;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,8 +48,8 @@ class MultiPartInputStreamTest {
 
     @Test
     void equals_DifferentStreams_NotEquals() {
-        IMultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
-                                                                 mock(IMultiPartDownloadHandler.class));
+        MultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
+                                                                mock(IMultiPartDownloadHandler.class));
 
         System.out.println("Another: " + another);
 
@@ -59,8 +58,8 @@ class MultiPartInputStreamTest {
 
     @Test
     void equals_SameStreams_NotEquals() {
-        IMultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
-                                                                 downloadHandler);
+        MultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
+                                                                downloadHandler);
 
         assertThat(target).isEqualTo(another).hasSameHashCodeAs(another);
     }
@@ -71,8 +70,8 @@ class MultiPartInputStreamTest {
 
         whenNeedToGetSize(expected);
 
-        IMultiPartInputStream target = new MultiPartInputStream(null, downloadHandler);
-        long                  actual = target.fileSize();
+        MultiPartInputStream target = new MultiPartInputStream(null, downloadHandler);
+        long                 actual = target.fileSize();
 
         verify(downloadHandler).size();
 

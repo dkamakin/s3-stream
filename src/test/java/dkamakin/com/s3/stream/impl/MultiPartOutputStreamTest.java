@@ -10,11 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import dkamakin.com.s3.stream.IMultiPartOutputStream;
+import com.google.common.base.MoreObjects;
 import dkamakin.com.s3.stream.handler.IMultiPartUploadHandler;
 import dkamakin.com.s3.stream.impl.MultiPartOutputStreamTest.Data.WriteArguments;
 import dkamakin.com.s3.stream.util.impl.Bytes;
-import com.google.common.base.MoreObjects;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,15 +84,15 @@ class MultiPartOutputStreamTest {
 
     @Test
     void equals_DifferentStreams_NotEquals() {
-        IMultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE,
-                                                                   mock(IMultiPartUploadHandler.class));
+        MultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE,
+                                                                  mock(IMultiPartUploadHandler.class));
 
         assertThat(target).isNotEqualTo(another).doesNotHaveSameHashCodeAs(another);
     }
 
     @Test
     void equals_SameStreams_NotEquals() {
-        IMultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE, uploadHandler);
+        MultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE, uploadHandler);
 
         assertThat(target).isEqualTo(another).hasSameHashCodeAs(another);
     }
@@ -172,7 +171,7 @@ class MultiPartOutputStreamTest {
 
         verify(uploadHandler).upload(any());
 
-        assertThat(target).extracting(IMultiPartOutputStream::size).isEqualTo(0);
+        assertThat(target).extracting(MultiPartOutputStream::size).isEqualTo(0);
     }
 
     @Test

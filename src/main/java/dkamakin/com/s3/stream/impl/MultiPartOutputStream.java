@@ -1,6 +1,5 @@
 package dkamakin.com.s3.stream.impl;
 
-import dkamakin.com.s3.stream.IMultiPartOutputStream;
 import dkamakin.com.s3.stream.IMultiPartOutputStreamBuilder;
 import dkamakin.com.s3.stream.handler.IMultiPartUploadHandler;
 import dkamakin.com.s3.stream.handler.impl.S3FileDescriptor;
@@ -14,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 @NotThreadSafe
-public class MultiPartOutputStream extends OutputStream implements IMultiPartOutputStream {
+public class MultiPartOutputStream extends OutputStream {
 
     private static final Logger LOG = LoggerFactory.getLogger(MultiPartOutputStream.class);
 
@@ -26,21 +25,6 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
         this.uploadHandler = uploadHandler;
         this.buffer        = new RedirectableOutputStream(minPartSize);
         this.minPartSize   = minPartSize;
-    }
-
-    @Override
-    public Bytes minPartSize() {
-        return minPartSize;
-    }
-
-    @Override
-    public S3FileDescriptor fileDescriptor() {
-        return uploadHandler.fileDescriptor();
-    }
-
-    @Override
-    public int size() {
-        return buffer.size();
     }
 
     @Override
@@ -74,6 +58,18 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
         resetBuffer();
     }
 
+    public Bytes minPartSize() {
+        return minPartSize;
+    }
+
+    public S3FileDescriptor fileDescriptor() {
+        return uploadHandler.fileDescriptor();
+    }
+
+    public int size() {
+        return buffer.size();
+    }
+
     private boolean isBufferExceedsMinPartSize() {
         return buffer.size() >= minPartSize.toBytes();
     }
@@ -91,6 +87,14 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
 
     public static IMultiPartOutputStreamBuilder builder() {
         return new MultiPartOutputStreamBuilder();
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    public boolean isNotEmpty() {
+        return !isEmpty();
     }
 
     @Override

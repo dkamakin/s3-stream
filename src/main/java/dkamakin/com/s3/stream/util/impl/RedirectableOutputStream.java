@@ -17,12 +17,7 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
     }
 
     @Override
-    public int size() {
-        return count;
-    }
-
-    @Override
-    public byte[] toByteArray() {
+    public synchronized byte[] toByteArray() {
         return buf;
     }
 

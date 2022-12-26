@@ -2,12 +2,11 @@ package dkamakin.com.s3.stream.impl.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dkamakin.com.s3.stream.IMultiPartOutputStream;
+import com.google.common.io.ByteStreams;
 import dkamakin.com.s3.stream.impl.MultiPartOutputStream;
+import dkamakin.com.s3.stream.impl.MultiPartOutputStreamBuilder.Constant;
 import dkamakin.com.s3.stream.util.impl.Bytes;
 import dkamakin.com.s3.stream.util.impl.RedirectableOutputStream;
-import com.google.common.io.ByteStreams;
-import dkamakin.com.s3.stream.impl.MultiPartOutputStreamBuilder.Constant;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -96,10 +95,10 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
         );
     }
 
-    private void assertData(Consumer<IMultiPartOutputStream> streamAction, Supplier<byte[]> expectedProvider) {
+    private void assertData(Consumer<MultiPartOutputStream> streamAction, Supplier<byte[]> expectedProvider) {
         String key = UUID.randomUUID().toString();
 
-        try (IMultiPartOutputStream stream = stream(key)) {
+        try (MultiPartOutputStream stream = stream(key)) {
             streamAction.accept(stream);
         }
 
@@ -112,7 +111,7 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
         assertThat(actual).hasSize(expected.length).isEqualTo(expected);
     }
 
-    void writeRandomData(IMultiPartOutputStream stream, RedirectableOutputStream buffer, ChunkSizeArgument argument) {
+    void writeRandomData(MultiPartOutputStream stream, RedirectableOutputStream buffer, ChunkSizeArgument argument) {
         int length    = argument.length.toBytes();
         int chunkSize = argument.chunkSize.toBytes();
 
@@ -141,7 +140,7 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
     void write_NoData_FileDoesNotExists() {
         String key = UUID.randomUUID().toString();
 
-        try (IMultiPartOutputStream stream = stream(key)) {
+        try (MultiPartOutputStream stream = stream(key)) {
             stream.flush();
         }
 

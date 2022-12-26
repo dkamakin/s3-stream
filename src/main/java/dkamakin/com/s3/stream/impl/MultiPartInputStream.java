@@ -1,18 +1,17 @@
 package dkamakin.com.s3.stream.impl;
 
-import dkamakin.com.s3.stream.IMultiPartInputStream;
+import com.google.common.base.MoreObjects;
 import dkamakin.com.s3.stream.IMultiPartInputStreamBuilder;
 import dkamakin.com.s3.stream.handler.IMultiPartDownloadHandler;
 import dkamakin.com.s3.stream.handler.impl.S3FileDescriptor;
 import dkamakin.com.s3.stream.util.impl.ByteRange;
-import com.google.common.base.MoreObjects;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
-public class MultiPartInputStream extends InputStream implements IMultiPartInputStream {
+public class MultiPartInputStream extends InputStream {
 
     private final IMultiPartDownloadHandler downloadHandler;
     private final long                      fileSize;
@@ -47,23 +46,20 @@ public class MultiPartInputStream extends InputStream implements IMultiPartInput
     }
 
     @Override
+    public void close() {
+        // --Nothing to do
+    }
+
     public long fileSize() {
         return fileSize;
     }
 
-    @Override
     public long readLength() {
         return readLength;
     }
 
-    @Override
     public S3FileDescriptor fileDescriptor() {
         return downloadHandler.fileDescriptor();
-    }
-
-    @Override
-    public void close() {
-        // --Nothing to do
     }
 
     private ByteRange getRange(int requestedLength) {
