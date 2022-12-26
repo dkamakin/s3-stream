@@ -27,10 +27,10 @@ MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
 ```
 MultiPartInputStream stream(String key, String bucketName, S3Client s3Client) {
     return MultiPartInputStream.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .client(s3Client)
-                                .build();
+                               .bucket(bucketName)
+                               .key(key)
+                               .client(s3Client)
+                               .build();
 }
 ```
 
