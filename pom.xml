@@ -9,7 +9,9 @@
   <packaging>jar</packaging>
 
   <name>S3 Stream</name>
-  <description>Manages to stream data to/from S3 without knowing the size beforehand</description>
+  <description>Manages to upload and download files using S3 without having to cache or save entire objects in the file
+    system
+  </description>
   <url>https://github.com/dkamakin/s3-stream</url>
 
   <licenses>

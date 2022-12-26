@@ -68,7 +68,7 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
                                                   .build());
     }
 
-    IMultiPartOutputStream stream(String key) {
+    MultiPartOutputStream stream(String key) {
         return MultiPartOutputStream.builder()
                                     .bucket(Data.BUCKET)
                                     .key(key)
