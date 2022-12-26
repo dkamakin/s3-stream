@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>S3 Stream</name>
-    <description>Small library to stream data to/from S3 without knowing the size beforehand</description>
+    <description>Manages to stream data to/from S3 without knowing the size beforehand</description>
     <url>https://github.com/dkamakin/s3-stream</url>
 
     <licenses>

@@ -7,11 +7,13 @@ import com.github.dkamakin.s3.stream.impl.MultiPartInputStream;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
 import com.github.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+@Disabled("manual")
 class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
 
     void create(String key, RequestBody body) {
