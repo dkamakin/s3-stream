@@ -1,17 +1,18 @@
 package com.github.dkamakin.s3.stream;
 
+import com.github.dkamakin.s3.stream.impl.MultiPartInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public interface IMultiPartInputStreamBuilder {
 
-    IMultiPartInputStreamBuilder withClient(S3Client s3Client);
+    IMultiPartInputStreamBuilder client(S3Client s3Client);
 
-    IMultiPartInputStreamBuilder forBucket(String bucketName);
+    IMultiPartInputStreamBuilder bucket(String bucketName);
 
-    IMultiPartInputStreamBuilder forKey(String path);
+    IMultiPartInputStreamBuilder key(String path);
 
     IMultiPartInputStreamBuilder fileSize(Long fileSize);
 
-    IMultiPartInputStream build();
+    MultiPartInputStream build();
 
 }

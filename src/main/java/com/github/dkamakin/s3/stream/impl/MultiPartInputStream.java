@@ -1,8 +1,7 @@
 package com.github.dkamakin.s3.stream.impl;
 
-import static com.google.common.base.Preconditions.checkPositionIndexes;
-
 import com.github.dkamakin.s3.stream.IMultiPartInputStream;
+import com.github.dkamakin.s3.stream.IMultiPartInputStreamBuilder;
 import com.github.dkamakin.s3.stream.handler.IMultiPartDownloadHandler;
 import com.github.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
 import com.github.dkamakin.s3.stream.util.impl.ByteRange;
@@ -30,19 +29,17 @@ public class MultiPartInputStream extends InputStream implements IMultiPartInput
     }
 
     @Override
-    public int read(byte[] b) {
-        return read(b, 0, b.length);
+    public int read(byte[] data) {
+        return read(data, 0, data.length);
     }
 
     @Override
-    public int read(byte[] b, int off, int len) {
+    public int read(byte[] data, int offset, int length) {
         if (readLength >= fileSize) {
             return -1;
         }
 
-        checkPositionIndexes(off, off + len, b.length);
-
-        int result = downloadHandler.getPart(getRange(len), b, off, len);
+        int result = downloadHandler.getPart(getRange(length), data, offset, length);
 
         readLength += result;
 
@@ -73,6 +70,9 @@ public class MultiPartInputStream extends InputStream implements IMultiPartInput
         return new ByteRange(readLength, readLength + requestedLength);
     }
 
+    public static IMultiPartInputStreamBuilder builder() {
+        return new MultiPartInputStreamBuilder();
+    }
 
     @Override
     public boolean equals(Object o) {

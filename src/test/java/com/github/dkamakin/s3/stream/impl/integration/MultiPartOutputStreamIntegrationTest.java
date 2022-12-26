@@ -12,16 +12,16 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
-@Disabled("Manual")
 class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
 
     static class ChunkSizeArgument {
@@ -35,11 +35,16 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
         }
     }
 
-    long size(String key) {
-        return s3Client.headObject(HeadObjectRequest.builder()
-                                                    .bucket(Data.BUCKET)
-                                                    .key(key)
-                                                    .build()).contentLength();
+    boolean isExists(String key) {
+        try {
+            s3Client.headObject(HeadObjectRequest.builder()
+                                                 .bucket(Data.BUCKET)
+                                                 .key(key)
+                                                 .build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
     }
 
     byte[] download(String key, int length) {
@@ -61,11 +66,11 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
                                                   .build());
     }
 
-    IMultiPartOutputStream createNewFile(String key) {
+    IMultiPartOutputStream stream(String key) {
         return MultiPartOutputStream.builder()
-                                    .forBucket(Data.BUCKET)
-                                    .forKey(key)
-                                    .withClient(s3Client)
+                                    .bucket(Data.BUCKET)
+                                    .key(key)
+                                    .client(s3Client)
                                     .build();
     }
 
@@ -89,12 +94,14 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
         );
     }
 
-    private void assertData(Consumer<IMultiPartOutputStream> streamAction, byte[] expected) {
+    private void assertData(Consumer<IMultiPartOutputStream> streamAction, Supplier<byte[]> expectedProvider) {
         String key = UUID.randomUUID().toString();
 
-        try (IMultiPartOutputStream stream = createNewFile(key)) {
+        try (IMultiPartOutputStream stream = stream(key)) {
             streamAction.accept(stream);
         }
+
+        byte[] expected = expectedProvider.get();
 
         System.out.println("Expected length: " + expected.length);
 
@@ -117,7 +124,7 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
     @ParameterizedTest
     @MethodSource("dataStream")
     void write_SingleWrite_SerializeThenReceiveCorrectBytes(byte[] expected) {
-        assertData(stream -> stream.write(expected), expected);
+        assertData(stream -> stream.write(expected), () -> expected);
     }
 
     @ParameterizedTest
@@ -125,18 +132,18 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
     void write_MultipleWriteDifferentSizes_WriteDataOnClose(ChunkSizeArgument argument) {
         RedirectableOutputStream expected = new RedirectableOutputStream(argument.length);
 
-        assertData(stream -> writeRandomData(stream, expected, argument), expected.toByteArray());
+        assertData(stream -> writeRandomData(stream, expected, argument), expected::toByteArray);
     }
 
     @Test
-    void write_NoData_AboutRequest() {
+    void write_NoData_FileDoesNotExists() {
         String key = UUID.randomUUID().toString();
 
-        try (IMultiPartOutputStream stream = createNewFile(key)) {
+        try (IMultiPartOutputStream stream = stream(key)) {
             stream.flush();
         }
 
-        assertThat(size(key)).isZero();
+        assertThat(isExists(key)).isFalse();
     }
 
 }

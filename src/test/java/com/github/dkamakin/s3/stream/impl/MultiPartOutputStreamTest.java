@@ -3,10 +3,12 @@ package com.github.dkamakin.s3.stream.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.github.dkamakin.s3.stream.IMultiPartOutputStream;
 import com.github.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
@@ -55,7 +57,7 @@ class MultiPartOutputStreamTest {
 
     @Mock IMultiPartUploadHandler uploadHandler;
 
-    IMultiPartOutputStream target;
+    MultiPartOutputStream target;
 
     @BeforeEach
     public void setUp() {
@@ -79,6 +81,37 @@ class MultiPartOutputStreamTest {
             new WriteArguments(new byte[1], -1, 1),
             new WriteArguments(new byte[1], 0, -1)
         );
+    }
+
+    @Test
+    void equals_DifferentStreams_NotEquals() {
+        IMultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE,
+                                                                   mock(IMultiPartUploadHandler.class));
+
+        assertThat(target).isNotEqualTo(another).doesNotHaveSameHashCodeAs(another);
+    }
+
+    @Test
+    void equals_SameStreams_NotEquals() {
+        IMultiPartOutputStream another = new MultiPartOutputStream(Data.BUFFER_SIZE, uploadHandler);
+
+        assertThat(target).isEqualTo(another).hasSameHashCodeAs(another);
+    }
+
+    @Test
+    void fileDescriptor_HandlerPresent_ExtractDescriptor() {
+        target.fileDescriptor();
+
+        verify(uploadHandler).fileDescriptor();
+    }
+
+    @Test
+    void write_SingleByte_DataIsBuffered() {
+        target.write(1);
+
+        verifyNoMoreInteractions(uploadHandler);
+
+        assertThat(target.size()).isEqualTo(1);
     }
 
     @Test

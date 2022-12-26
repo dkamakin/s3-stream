@@ -44,9 +44,7 @@ public class Bytes implements Comparable<Bytes> {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                          .add("kb", toKb())
-                          .add("mb", toMb())
-                          .add("bytes", byteCount)
+                          .add("bytes", toBytes())
                           .toString();
     }
 

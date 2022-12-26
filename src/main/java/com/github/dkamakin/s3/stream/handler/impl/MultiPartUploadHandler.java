@@ -1,5 +1,6 @@
 package com.github.dkamakin.s3.stream.handler.impl;
 
+import com.github.dkamakin.s3.stream.exception.PartNumberExceedLimitException;
 import com.github.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
 import com.github.dkamakin.s3.stream.util.impl.Validator;
 import com.google.common.base.MoreObjects;
@@ -14,11 +15,15 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 public class MultiPartUploadHandler implements IMultiPartUploadHandler {
+
+    static class Constant {
+
+        static final int MAX_PART_NUMBER = 10001;
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(MultiPartUploadHandler.class);
 
@@ -43,7 +48,7 @@ public class MultiPartUploadHandler implements IMultiPartUploadHandler {
         LOG.info("Close: {}", this);
 
         if (partETags.isEmpty()) {
-            handleEmptyComplete();
+            abort();
         } else {
             sendCompleteRequest();
         }
@@ -51,6 +56,8 @@ public class MultiPartUploadHandler implements IMultiPartUploadHandler {
 
     @Override
     public void upload(RequestBody body) {
+        validateState();
+
         LOG.debug("Uploading part {}", partNumber);
 
         partETags.add(CompletedPart.builder()
@@ -75,23 +82,6 @@ public class MultiPartUploadHandler implements IMultiPartUploadHandler {
                                                                        .key(fileDescriptor.key())
                                                                        .uploadId(uploadId)
                                                                        .build());
-    }
-
-    private void handleEmptyComplete() {
-        abort();
-        uploadEmpty();
-    }
-
-    private void uploadEmpty() {
-        LOG.info("Uploading empty data");
-
-        fileDescriptor.s3Client()
-                      .putObject(PutObjectRequest.builder()
-                                                 .bucket(fileDescriptor.bucketName())
-                                                 .key(fileDescriptor.key())
-                                                 .contentLength(0L)
-                                                 .build(),
-                                 RequestBody.empty());
     }
 
     private void sendCompleteRequest() {
@@ -122,6 +112,12 @@ public class MultiPartUploadHandler implements IMultiPartUploadHandler {
                                                                                 .bucket(fileDescriptor.bucketName())
                                                                                 .key(fileDescriptor.key())
                                                                                 .build());
+    }
+
+    private void validateState() {
+        if (partNumber == Constant.MAX_PART_NUMBER) {
+            throw new PartNumberExceedLimitException();
+        }
     }
 
     @Override

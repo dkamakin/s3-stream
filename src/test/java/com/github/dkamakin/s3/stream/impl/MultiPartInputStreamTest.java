@@ -1,5 +1,16 @@
 package com.github.dkamakin.s3.stream.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.github.dkamakin.s3.stream.IMultiPartInputStream;
 import com.github.dkamakin.s3.stream.handler.IMultiPartDownloadHandler;
 import com.github.dkamakin.s3.stream.util.impl.ByteRange;
@@ -9,10 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartInputStreamTest {
@@ -25,7 +32,7 @@ class MultiPartInputStreamTest {
     @Mock
     IMultiPartDownloadHandler downloadHandler;
 
-    IMultiPartInputStream target;
+    MultiPartInputStream target;
 
     @BeforeEach
     void setUp() {
@@ -36,16 +43,64 @@ class MultiPartInputStreamTest {
         when(downloadHandler.getPart(any(), any(), anyInt(), anyInt())).thenReturn(first, others);
     }
 
+    void whenNeedToGetSize(long size) {
+        when(downloadHandler.size()).thenReturn(size);
+    }
+
+    @Test
+    void equals_DifferentStreams_NotEquals() {
+        IMultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
+                                                                 mock(IMultiPartDownloadHandler.class));
+
+        System.out.println("Another: " + another);
+
+        assertThat(target).isNotEqualTo(another).doesNotHaveSameHashCodeAs(another);
+    }
+
+    @Test
+    void equals_SameStreams_NotEquals() {
+        IMultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
+                                                                 downloadHandler);
+
+        assertThat(target).isEqualTo(another).hasSameHashCodeAs(another);
+    }
+
     @Test
     void ctor_FileSizeIsNull_GetFromDownloadHandler() {
-        new MultiPartInputStream(null, downloadHandler);
+        long expected = 100L;
+
+        whenNeedToGetSize(expected);
+
+        IMultiPartInputStream target = new MultiPartInputStream(null, downloadHandler);
+        long                  actual = target.fileSize();
 
         verify(downloadHandler).size();
+
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     void ctor_FileSizeProvided_UseProvidedSize() {
         verifyNoInteractions(downloadHandler);
+    }
+
+    @Test
+    void close_NoAction_NoException() {
+        target.close();
+
+        verifyNoInteractions(downloadHandler);
+    }
+
+    @Test
+    void read_SingleByte_UnsupportedOperationException() {
+        assertThatThrownBy(target::read).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void fileDescriptor_HandlerPresent_ExtractDescriptor() {
+        target.fileDescriptor();
+
+        verify(downloadHandler).fileDescriptor();
     }
 
     @Test
@@ -57,6 +112,7 @@ class MultiPartInputStreamTest {
         int actual = target.read(new byte[10]);
 
         assertThat(actual).isNegative();
+        assertThat(target.readLength()).isEqualTo(Data.FILE_SIZE);
     }
 
     @Test
@@ -64,9 +120,12 @@ class MultiPartInputStreamTest {
         int    length = 10;
         byte[] data   = new byte[length];
 
+        whenNeedToRead(length);
+
         target.read(data);
 
         verify(downloadHandler).getPart(new ByteRange(0, length), data, 0, data.length);
+        assertThat(target.readLength()).isEqualTo(length);
     }
 
     @Test
@@ -84,6 +143,7 @@ class MultiPartInputStreamTest {
         verify(downloadHandler, times(2)).getPart(captor.capture(), eq(data), anyInt(), anyInt());
 
         assertThat(captor.getAllValues()).contains(new ByteRange(0, length), new ByteRange(length, length * 2));
+        assertThat(target.readLength()).isEqualTo(length * 2);
     }
 
     @Test
@@ -92,11 +152,12 @@ class MultiPartInputStreamTest {
         int    offset = 5;
         byte[] data   = new byte[length + offset];
 
-        whenNeedToRead(length, length);
+        whenNeedToRead(length);
 
         target.read(data, offset, length);
 
         verify(downloadHandler).getPart(new ByteRange(0, length), data, offset, length);
+        assertThat(target.readLength()).isEqualTo(length);
     }
 
     @Test
@@ -116,5 +177,6 @@ class MultiPartInputStreamTest {
         verify(downloadHandler, times(2)).getPart(captor.capture(), eq(data), anyInt(), anyInt());
 
         assertThat(captor.getAllValues()).contains(new ByteRange(0, length), new ByteRange(length, length * 2));
+        assertThat(target.readLength()).isEqualTo(length * 2);
     }
 }

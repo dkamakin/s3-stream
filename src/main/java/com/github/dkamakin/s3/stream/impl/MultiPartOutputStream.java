@@ -45,17 +45,17 @@ public class MultiPartOutputStream extends OutputStream implements IMultiPartOut
 
     @Override
     public void write(int b) {
-        throw new UnsupportedOperationException("Attempt to write a single byte to S3");
+        buffer.write(b);
     }
 
     @Override
-    public void write(byte[] b) {
-        write(b, 0, b.length);
+    public void write(byte[] data) {
+        write(data, 0, data.length);
     }
 
     @Override
-    public void write(byte[] b, int off, int len) {
-        buffer.write(b, off, len);
+    public void write(byte[] data, int offset, int length) {
+        buffer.write(data, offset, length);
 
         if (isBufferExceedsMinPartSize()) {
             flush();

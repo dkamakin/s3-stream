@@ -1,18 +1,19 @@
 package com.github.dkamakin.s3.stream;
 
+import com.github.dkamakin.s3.stream.impl.MultiPartOutputStream;
 import com.github.dkamakin.s3.stream.util.impl.Bytes;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public interface IMultiPartOutputStreamBuilder {
 
-    IMultiPartOutputStreamBuilder withClient(S3Client s3Client);
+    IMultiPartOutputStreamBuilder client(S3Client s3Client);
 
-    IMultiPartOutputStreamBuilder forBucket(String bucketName);
+    IMultiPartOutputStreamBuilder bucket(String bucketName);
 
-    IMultiPartOutputStreamBuilder forKey(String path);
+    IMultiPartOutputStreamBuilder key(String path);
 
-    IMultiPartOutputStreamBuilder setMinPartSize(Bytes minPartSize);
+    IMultiPartOutputStreamBuilder minPartSize(Bytes minPartSize);
 
-    IMultiPartOutputStream build();
+    MultiPartOutputStream build();
 
 }

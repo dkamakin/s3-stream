@@ -2,7 +2,6 @@ package com.github.dkamakin.s3.stream.impl;
 
 import static com.github.dkamakin.s3.stream.impl.MultiPartOutputStreamBuilder.Constant.S3_MIN_PART_SIZE;
 
-import com.github.dkamakin.s3.stream.IMultiPartOutputStream;
 import com.github.dkamakin.s3.stream.IMultiPartOutputStreamBuilder;
 import com.github.dkamakin.s3.stream.handler.impl.MultiPartUploadHandler;
 import com.github.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
@@ -24,31 +23,31 @@ public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuild
     private Bytes    minPartSize;
 
     @Override
-    public IMultiPartOutputStreamBuilder withClient(S3Client s3Client) {
+    public IMultiPartOutputStreamBuilder client(S3Client s3Client) {
         this.s3Client = s3Client;
         return this;
     }
 
     @Override
-    public IMultiPartOutputStreamBuilder forBucket(String bucketName) {
+    public IMultiPartOutputStreamBuilder bucket(String bucketName) {
         this.bucketName = bucketName;
         return this;
     }
 
     @Override
-    public IMultiPartOutputStreamBuilder forKey(String path) {
+    public IMultiPartOutputStreamBuilder key(String path) {
         this.key = path;
         return this;
     }
 
     @Override
-    public IMultiPartOutputStreamBuilder setMinPartSize(Bytes minPartSize) {
+    public IMultiPartOutputStreamBuilder minPartSize(Bytes minPartSize) {
         this.minPartSize = minPartSize;
         return this;
     }
 
     @Override
-    public IMultiPartOutputStream build() {
+    public MultiPartOutputStream build() {
         minPartSize = Optional.ofNullable(minPartSize).map(this::validate).orElse(S3_MIN_PART_SIZE);
 
         return new MultiPartOutputStream(minPartSize,

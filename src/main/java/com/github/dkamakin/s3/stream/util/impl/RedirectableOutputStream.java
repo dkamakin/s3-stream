@@ -12,11 +12,6 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
     }
 
     @Override
-    public void write(int b) {
-        throw new UnsupportedOperationException("Attempt to write a single byte to stream");
-    }
-
-    @Override
     public void write(byte[] b) {
         super.write(b, 0, b.length);
     }

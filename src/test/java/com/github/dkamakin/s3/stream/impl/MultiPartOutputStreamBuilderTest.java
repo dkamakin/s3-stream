@@ -38,9 +38,9 @@ class MultiPartOutputStreamBuilderTest {
 
     IMultiPartOutputStreamBuilder defaultBuilder() {
         return MultiPartOutputStream.builder()
-                                    .forBucket(Data.BUCKET)
-                                    .forKey(Data.BUCKET)
-                                    .withClient(s3Client);
+                                    .bucket(Data.BUCKET)
+                                    .key(Data.BUCKET)
+                                    .client(s3Client);
     }
 
     @Test
@@ -48,9 +48,9 @@ class MultiPartOutputStreamBuilderTest {
         whenNeedToCreateMultipartUpload(Data.RESPONSE);
 
         assertThatCode(() -> MultiPartOutputStream.builder()
-                                                  .forKey(Data.KEY)
-                                                  .forBucket(Data.BUCKET)
-                                                  .withClient(s3Client)
+                                                  .key(Data.KEY)
+                                                  .bucket(Data.BUCKET)
+                                                  .client(s3Client)
                                                   .build())
             .doesNotThrowAnyException();
     }
@@ -62,10 +62,10 @@ class MultiPartOutputStreamBuilderTest {
         Bytes minPartSize = Bytes.fromMb(6);
 
         assertThatCode(() -> MultiPartOutputStream.builder()
-                                                  .forKey(Data.KEY)
-                                                  .forBucket(Data.BUCKET)
-                                                  .withClient(s3Client)
-                                                  .setMinPartSize(minPartSize)
+                                                  .key(Data.KEY)
+                                                  .bucket(Data.BUCKET)
+                                                  .client(s3Client)
+                                                  .minPartSize(minPartSize)
                                                   .build())
             .doesNotThrowAnyException();
     }
@@ -73,8 +73,8 @@ class MultiPartOutputStreamBuilderTest {
     @Test
     void build_BucketNotPresent_IllegalArgumentException() {
         assertThatThrownBy(() -> MultiPartOutputStream.builder()
-                                                      .forKey(Data.KEY)
-                                                      .withClient(s3Client)
+                                                      .key(Data.KEY)
+                                                      .client(s3Client)
                                                       .build())
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -82,8 +82,8 @@ class MultiPartOutputStreamBuilderTest {
     @Test
     void build_ClientNotPresent_IllegalArgumentException() {
         assertThatThrownBy(() -> MultiPartOutputStream.builder()
-                                                      .forBucket(Data.BUCKET)
-                                                      .forKey(Data.KEY)
+                                                      .bucket(Data.BUCKET)
+                                                      .key(Data.KEY)
                                                       .build())
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -91,8 +91,8 @@ class MultiPartOutputStreamBuilderTest {
     @Test
     void build_KeyNotPresent_IllegalArgumentException() {
         assertThatThrownBy(() -> MultiPartOutputStream.builder()
-                                                      .forBucket(Data.BUCKET)
-                                                      .withClient(s3Client)
+                                                      .bucket(Data.BUCKET)
+                                                      .client(s3Client)
                                                       .build())
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -109,7 +109,7 @@ class MultiPartOutputStreamBuilderTest {
 
     @Test
     void build_MinPartSizeLessThanAmazonRequirements_IllegalArgumentException() {
-        assertThatThrownBy(() -> defaultBuilder().setMinPartSize(Bytes.fromBytes(1024 * 1024 * 5 - 1))
+        assertThatThrownBy(() -> defaultBuilder().minPartSize(Bytes.fromBytes(1024 * 1024 * 5 - 1))
                                                  .build())
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -119,7 +119,7 @@ class MultiPartOutputStreamBuilderTest {
         whenNeedToCreateMultipartUpload(Data.RESPONSE);
 
         Bytes expected = Bytes.fromMb(6);
-        Bytes actual   = defaultBuilder().setMinPartSize(expected).build().minPartSize();
+        Bytes actual   = defaultBuilder().minPartSize(expected).build().minPartSize();
 
         assertThat(actual).isEqualTo(expected);
     }

@@ -5,9 +5,9 @@ import com.github.dkamakin.s3.stream.util.ICloseable;
 
 public interface IMultiPartInputStream extends ICloseable {
 
-    int read(byte[] b);
+    int read(byte[] data);
 
-    int read(byte[] b, int off, int len);
+    int read(byte[] data, int offset, int length);
 
     long fileSize();
 

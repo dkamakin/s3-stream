@@ -1,9 +1,9 @@
 package com.github.dkamakin.s3.stream.impl;
 
-import com.github.dkamakin.s3.stream.IMultiPartInputStream;
 import com.github.dkamakin.s3.stream.IMultiPartInputStreamBuilder;
 import com.github.dkamakin.s3.stream.handler.impl.MultiPartDownloadHandler;
 import com.github.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
+import com.github.dkamakin.s3.stream.util.impl.RetryableStreamReader;
 import software.amazon.awssdk.services.s3.S3Client;
 
 public class MultiPartInputStreamBuilder implements IMultiPartInputStreamBuilder {
@@ -14,19 +14,19 @@ public class MultiPartInputStreamBuilder implements IMultiPartInputStreamBuilder
     private Long     fileSize;
 
     @Override
-    public IMultiPartInputStreamBuilder withClient(S3Client s3Client) {
+    public IMultiPartInputStreamBuilder client(S3Client s3Client) {
         this.s3Client = s3Client;
         return this;
     }
 
     @Override
-    public IMultiPartInputStreamBuilder forBucket(String bucketName) {
+    public IMultiPartInputStreamBuilder bucket(String bucketName) {
         this.bucketName = bucketName;
         return this;
     }
 
     @Override
-    public IMultiPartInputStreamBuilder forKey(String path) {
+    public IMultiPartInputStreamBuilder key(String path) {
         this.key = path;
         return this;
     }
@@ -38,8 +38,9 @@ public class MultiPartInputStreamBuilder implements IMultiPartInputStreamBuilder
     }
 
     @Override
-    public IMultiPartInputStream build() {
+    public MultiPartInputStream build() {
         return new MultiPartInputStream(fileSize,
-                                        new MultiPartDownloadHandler(new S3FileDescriptor(bucketName, key, s3Client)));
+                                        new MultiPartDownloadHandler(new S3FileDescriptor(bucketName, key, s3Client),
+                                                                     RetryableStreamReader::new));
     }
 }

@@ -7,9 +7,11 @@ import com.github.dkamakin.s3.stream.util.impl.Bytes;
 
 public interface IMultiPartOutputStream extends IFlushable, ICloseable {
 
-    void write(byte[] b);
+    void write(int data);
 
-    void write(byte[] b, int off, int len);
+    void write(byte[] data);
+
+    void write(byte[] data, int offset, int length);
 
     int size();
 
