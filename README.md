@@ -10,7 +10,7 @@ in [JavaDoc](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s
 
 # Examples
 
-1. Creating an OutputStream
+1. Creating an [OutputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartOutputStream.html)
 
 ```
 MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
@@ -22,7 +22,7 @@ MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
 }
 ```
 
-2. Creating an InputStream
+2. Creating an [InputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartInputStream.html)
 
 ```
 MultiPartInputStream stream(String key, String bucketName, S3Client s3Client) {
