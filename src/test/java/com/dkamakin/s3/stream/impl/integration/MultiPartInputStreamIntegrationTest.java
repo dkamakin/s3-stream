@@ -56,7 +56,7 @@ class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
 
         create(key, expected.toByteArray());
 
-        byte[] actual = new byte[chunkSize.toBytes()];
+        byte[] actual = new byte[expected.size()];
         int    read;
 
         try (MultiPartInputStream stream = stream(key)) {
@@ -70,14 +70,14 @@ class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
     @Test
     void read_ExceedsFileSize_NoException() {
         String                   key       = UUID.randomUUID().toString();
-        Bytes                    chunkSize = Bytes.fromKb(512);
+        Bytes                    chunkSize = Bytes.fromMb(1);
         RedirectableOutputStream expected  = new RedirectableOutputStream(chunkSize);
 
         expected.write(RandomUtils.nextBytes(chunkSize.toBytes()));
 
         create(key, expected.toByteArray());
 
-        byte[] actual = new byte[chunkSize.toBytes() * 2];
+        byte[] actual = new byte[expected.size() * 2];
         int    read;
         int    secondRead;
 

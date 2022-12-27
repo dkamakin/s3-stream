@@ -7,6 +7,7 @@ import com.dkamakin.s3.stream.util.impl.ByteRange;
 import com.google.common.base.MoreObjects;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.function.IntSupplier;
 import javax.annotation.concurrent.NotThreadSafe;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -23,6 +24,7 @@ public class MultiPartInputStream extends InputStream {
     static class Constant {
 
         static final int RANGE_NOT_SATISFIABLE = 416;
+        static final int EOS                   = -1;
     }
 
     private final IMultiPartDownloadHandler downloadHandler;
@@ -70,18 +72,18 @@ public class MultiPartInputStream extends InputStream {
     @Override
     public int read(byte[] data, int offset, int length) {
         if (isEnded) {
-            return -1;
+            return Constant.EOS;
         }
+
+        int read;
 
         try {
-            int result = downloadHandler.getPart(getRange(length), data, offset, length);
-
-            readLength += result;
-
-            return result;
+            read = logReadLength(() -> downloadHandler.getPart(getRange(length), data, offset, length));
         } catch (S3Exception e) {
-            return handle(e);
+            read = handle(e);
         }
+
+        return read;
     }
 
     /**
@@ -110,10 +112,6 @@ public class MultiPartInputStream extends InputStream {
         return downloadHandler.fileDescriptor();
     }
 
-    private ByteRange getRange(int requestedLength) {
-        return new ByteRange(readLength, readLength + requestedLength);
-    }
-
     public static IMultiPartInputStreamBuilder builder() {
         return new MultiPartInputStreamBuilder();
     }
@@ -121,10 +119,22 @@ public class MultiPartInputStream extends InputStream {
     private int handle(S3Exception exception) {
         if (exception.statusCode() == Constant.RANGE_NOT_SATISFIABLE) {
             isEnded = true;
-            return -1;
+            return Constant.EOS;
         } else {
             throw exception;
         }
+    }
+
+    private ByteRange getRange(int requestedLength) {
+        return new ByteRange(readLength, readLength + requestedLength);
+    }
+
+    private int logReadLength(IntSupplier action) {
+        int read = action.getAsInt();
+
+        readLength += read;
+
+        return read;
     }
 
     @Override
@@ -132,9 +142,11 @@ public class MultiPartInputStream extends InputStream {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         MultiPartInputStream that = (MultiPartInputStream) o;
         return downloadHandler.equals(that.downloadHandler);
     }
