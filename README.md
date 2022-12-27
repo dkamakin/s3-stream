@@ -6,7 +6,7 @@ This is a wrapper over the AWS SDK v2 based on Java 8, which allows you to uploa
 having to cache or
 save entire objects in the file system, as the official API suggests. The library offers InputStream and OutputStream
 with well-known methods for convenient work with your files. Read more
-in [JavaDoc](http://dkamakin.github.io/s3-stream/javadoc/apidocs/)
+in [JavaDoc](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/package-summary.html)
 
 # Examples
 
