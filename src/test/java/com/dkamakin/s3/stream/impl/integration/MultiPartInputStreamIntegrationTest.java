@@ -16,8 +16,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
 
     void create(String key, RequestBody body) {
-        s3Client.putObject(PutObjectRequest.builder().key(key).bucket(Data.BUCKET).build(),
-                           body);
+        s3Client.putObject(PutObjectRequest.builder().key(key).bucket(Data.BUCKET).build(), body);
     }
 
     void create(String key, byte[] data) {
@@ -66,6 +65,29 @@ class MultiPartInputStreamIntegrationTest extends MinioIntegrationTest {
 
         assertThat(read).isEqualTo(chunkSize.toBytes());
         assertThat(actual).isEqualTo(expected.toByteArray());
+    }
+
+    @Test
+    void read_ExceedsFileSize_NoException() {
+        String                   key       = UUID.randomUUID().toString();
+        Bytes                    chunkSize = Bytes.fromKb(512);
+        RedirectableOutputStream expected  = new RedirectableOutputStream(chunkSize);
+
+        expected.write(RandomUtils.nextBytes(chunkSize.toBytes()));
+
+        create(key, expected.toByteArray());
+
+        byte[] actual = new byte[chunkSize.toBytes() * 2];
+        int    read;
+        int    secondRead;
+
+        try (MultiPartInputStream stream = stream(key)) {
+            read       = stream.read(actual);
+            secondRead = stream.read(actual);
+        }
+
+        assertThat(read).isEqualTo(chunkSize.toBytes());
+        assertThat(secondRead).isNegative();
     }
 
 }

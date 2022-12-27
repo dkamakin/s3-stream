@@ -13,7 +13,7 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
 
     @Override
     public void write(byte[] b) {
-        super.write(b, 0, b.length);
+        write(b, 0, b.length);
     }
 
     @Override

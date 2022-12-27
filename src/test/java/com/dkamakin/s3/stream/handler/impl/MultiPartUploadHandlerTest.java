@@ -8,8 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
 import com.dkamakin.s3.stream.exception.PartNumberExceedLimitException;
+import com.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

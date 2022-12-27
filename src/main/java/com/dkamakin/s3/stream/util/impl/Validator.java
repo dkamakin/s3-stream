@@ -18,12 +18,12 @@ public class Validator {
 
     public static <T> void nonNull(T argument, String name) {
         check(argument, Objects::nonNull,
-                () -> new IllegalArgumentException(String.format("Argument '%s' must be present", name)));
+              () -> new IllegalArgumentException(String.format("Argument '%s' must be present", name)));
     }
 
     public static void isNotEmpty(String argument, String name) {
         check(argument, StringUtils::isNotEmpty,
-                () -> new IllegalArgumentException(String.format("Argument '%s' must be non-empty", name)));
+              () -> new IllegalArgumentException(String.format("Argument '%s' must be non-empty", name)));
     }
 
     public static class Comparator<T extends Comparable<T>> {

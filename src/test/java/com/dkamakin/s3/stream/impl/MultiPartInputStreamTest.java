@@ -19,37 +19,47 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartInputStreamTest {
 
     static final class Data {
 
+        static class TestException extends RuntimeException {
+
+        }
+
         static final int FILE_SIZE = 100;
     }
 
-    @Mock
-    IMultiPartDownloadHandler downloadHandler;
+    @Mock IMultiPartDownloadHandler downloadHandler;
 
     MultiPartInputStream target;
 
     @BeforeEach
     void setUp() {
-        target = new MultiPartInputStream((long) Data.FILE_SIZE, downloadHandler);
+        target = new MultiPartInputStream(downloadHandler);
     }
 
     void whenNeedToRead(Integer first, Integer... others) {
         when(downloadHandler.getPart(any(), any(), anyInt(), anyInt())).thenReturn(first, others);
     }
 
-    void whenNeedToGetSize(long size) {
-        when(downloadHandler.size()).thenReturn(size);
+    void whenNeedToGetEOS() {
+        S3Exception exception = mock(S3Exception.class);
+        when(exception.statusCode()).thenReturn(416);
+
+        whenNeedToGetException(exception);
+    }
+
+    void whenNeedToGetException(Throwable exception) {
+        when(downloadHandler.getPart(any(), any(), anyInt(), anyInt())).thenThrow(exception);
     }
 
     @Test
     void equals_DifferentStreams_NotEquals() {
-        MultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
-                                                                mock(IMultiPartDownloadHandler.class));
+        MultiPartInputStream another = new MultiPartInputStream(mock(IMultiPartDownloadHandler.class));
 
         System.out.println("Another: " + another);
 
@@ -58,24 +68,9 @@ class MultiPartInputStreamTest {
 
     @Test
     void equals_SameStreams_NotEquals() {
-        MultiPartInputStream another = new MultiPartInputStream((long) Data.FILE_SIZE,
-                                                                downloadHandler);
+        MultiPartInputStream another = new MultiPartInputStream(downloadHandler);
 
         assertThat(target).isEqualTo(another).hasSameHashCodeAs(another);
-    }
-
-    @Test
-    void ctor_FileSizeIsNull_GetFromDownloadHandler() {
-        long expected = 100L;
-
-        whenNeedToGetSize(expected);
-
-        MultiPartInputStream target = new MultiPartInputStream(null, downloadHandler);
-        long                 actual = target.fileSize();
-
-        verify(downloadHandler).size();
-
-        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
@@ -103,14 +98,29 @@ class MultiPartInputStreamTest {
     }
 
     @Test
+    void read_ExceptionOccurred_Rethrow() {
+        byte[]      data     = new byte[1];
+        S3Exception expected = mock(S3Exception.class);
+
+        whenNeedToGetException(expected);
+
+        assertThatThrownBy(() -> target.read(data)).isInstanceOf(expected.getClass());
+    }
+
+    @Test
     void read_OverflowFileSize_EOS() {
         whenNeedToRead(Data.FILE_SIZE);
 
         target.read(new byte[Data.FILE_SIZE]);
 
-        int actual = target.read(new byte[10]);
+        whenNeedToGetEOS();
 
-        assertThat(actual).isNegative();
+        int actual        = target.read(new byte[10]);
+        int secondAttempt = target.read(new byte[10]);
+
+        verify(downloadHandler, times(2)).getPart(any(), any(), anyInt(), anyInt());
+
+        assertThat(actual).isEqualTo(secondAttempt).isNegative();
         assertThat(target.readLength()).isEqualTo(Data.FILE_SIZE);
     }
 

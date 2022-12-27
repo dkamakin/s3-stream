@@ -133,6 +133,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <plugin.nexus.staging.version>1.6.12</plugin.nexus.staging.version>
+    <plugin.maven.javadoc.version>3.4.1</plugin.maven.javadoc.version>
     <plugin.maven.source.version>3.2.1</plugin.maven.source.version>
     <plugin.maven.gpg.version>3.0.1</plugin.maven.gpg.version>
     <plugin.maven.compiler.version>2.3.2</plugin.maven.compiler.version>
@@ -176,13 +177,26 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${plugin.maven.javadoc.version}</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>${plugin.nexus.staging.version}</version>
         <extensions>true</extensions>
         <configuration>
           <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
         </configuration>
       </plugin>

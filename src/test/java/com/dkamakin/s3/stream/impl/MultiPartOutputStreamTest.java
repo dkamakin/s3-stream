@@ -11,9 +11,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.dkamakin.s3.stream.handler.IMultiPartUploadHandler;
+import com.dkamakin.s3.stream.impl.MultiPartOutputStreamTest.Data.WriteArguments;
 import com.dkamakin.s3.stream.util.impl.Bytes;
 import com.google.common.base.MoreObjects;
-import com.dkamakin.s3.stream.impl.MultiPartOutputStreamTest.Data.WriteArguments;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

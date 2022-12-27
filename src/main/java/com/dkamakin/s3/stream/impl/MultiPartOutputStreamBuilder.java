@@ -2,41 +2,24 @@ package com.dkamakin.s3.stream.impl;
 
 import static com.dkamakin.s3.stream.impl.MultiPartOutputStreamBuilder.Constant.S3_MIN_PART_SIZE;
 
+import com.dkamakin.s3.stream.IMultiPartOutputStreamBuilder;
 import com.dkamakin.s3.stream.handler.impl.MultiPartUploadHandler;
-import com.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
 import com.dkamakin.s3.stream.util.impl.Bytes;
 import com.dkamakin.s3.stream.util.impl.Validator;
-import com.dkamakin.s3.stream.IMultiPartOutputStreamBuilder;
 import java.util.Optional;
-import software.amazon.awssdk.services.s3.S3Client;
 
-public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuilder {
+public class MultiPartOutputStreamBuilder extends FileDescriptorBuilder<IMultiPartOutputStreamBuilder>
+    implements IMultiPartOutputStreamBuilder {
 
     public static class Constant {
 
         public static final Bytes S3_MIN_PART_SIZE = Bytes.fromMb(5);
     }
 
-    private S3Client s3Client;
-    private String   bucketName;
-    private String   key;
-    private Bytes    minPartSize;
+    private Bytes minPartSize;
 
     @Override
-    public IMultiPartOutputStreamBuilder client(S3Client s3Client) {
-        this.s3Client = s3Client;
-        return this;
-    }
-
-    @Override
-    public IMultiPartOutputStreamBuilder bucket(String bucketName) {
-        this.bucketName = bucketName;
-        return this;
-    }
-
-    @Override
-    public IMultiPartOutputStreamBuilder key(String path) {
-        this.key = path;
+    protected IMultiPartOutputStreamBuilder getThis() {
         return this;
     }
 
@@ -50,8 +33,7 @@ public class MultiPartOutputStreamBuilder implements IMultiPartOutputStreamBuild
     public MultiPartOutputStream build() {
         minPartSize = Optional.ofNullable(minPartSize).map(this::validate).orElse(S3_MIN_PART_SIZE);
 
-        return new MultiPartOutputStream(minPartSize,
-                                         new MultiPartUploadHandler(new S3FileDescriptor(bucketName, key, s3Client)));
+        return new MultiPartOutputStream(minPartSize, new MultiPartUploadHandler(buildDescriptor()));
     }
 
     private Bytes validate(Bytes minPartSize) {
