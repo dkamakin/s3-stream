@@ -2,11 +2,11 @@
 
 # What is this?
 
-This is a wrapper over the AWS SDK v2 based on Java 8, which allows you to upload and download files using S3 without having to cache or
+This is a wrapper over the AWS SDK v2 based on Java 8, which allows you to upload and download files using S3 without
+having to cache or
 save entire objects in the file system, as the official API suggests. The library offers InputStream and OutputStream
-with well-known methods for convenient work with your files.
-
-*JavaDoc is coming soon*
+with well-known methods for convenient work with your files. Read more
+in [JavaDoc](http://dkamakin.github.io/s3-stream/javadoc/apidocs/)
 
 # Examples
 
@@ -22,7 +22,6 @@ MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
 }
 ```
 
-
 2. Creating an InputStream
 
 ```
@@ -37,4 +36,10 @@ MultiPartInputStream stream(String key, String bucketName, S3Client s3Client) {
 
 # Install
 
-*Maven Central is coming soon*
+```
+<dependency>
+  <groupId>com.dkamakin</groupId>
+  <artifactId>s3-stream</artifactId>
+  <version>1.0</version>
+</dependency>
+```
