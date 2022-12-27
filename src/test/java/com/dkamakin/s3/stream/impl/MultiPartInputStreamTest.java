@@ -26,10 +26,6 @@ class MultiPartInputStreamTest {
 
     static final class Data {
 
-        static class TestException extends RuntimeException {
-
-        }
-
         static final int FILE_SIZE = 100;
     }
 
