@@ -1,7 +1,0 @@
-com.dkamakin.s3.stream
-com.dkamakin.s3.stream.exception
-com.dkamakin.s3.stream.handler
-com.dkamakin.s3.stream.handler.impl
-com.dkamakin.s3.stream.impl
-com.dkamakin.s3.stream.util
-com.dkamakin.s3.stream.util.impl

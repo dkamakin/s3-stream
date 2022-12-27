@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.dkamakin.s3.stream"},{"l":"com.dkamakin.s3.stream.exception"},{"l":"com.dkamakin.s3.stream.handler"},{"l":"com.dkamakin.s3.stream.handler.impl"},{"l":"com.dkamakin.s3.stream.impl"},{"l":"com.dkamakin.s3.stream.util"},{"l":"com.dkamakin.s3.stream.util.impl"}];updateSearchResults();
