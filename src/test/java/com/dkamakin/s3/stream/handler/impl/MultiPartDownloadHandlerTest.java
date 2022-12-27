@@ -26,17 +26,14 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartDownloadHandlerTest {
 
     static class Data {
 
-        static final String KEY       = "key";
-        static final String BUCKET    = "bucket";
-        static final long   FILE_SIZE = 100L;
+        static final String KEY    = "key";
+        static final String BUCKET = "bucket";
     }
 
     @Mock S3Client              s3Client;
@@ -52,14 +49,6 @@ class MultiPartDownloadHandlerTest {
 
     RetryableStreamReader streamReaderProvider(InputStream stream) {
         return streamReader;
-    }
-
-    void whenNeedToGetSize(HeadObjectResponse response) {
-        when(s3Client.headObject((HeadObjectRequest) any())).thenReturn(response);
-    }
-
-    void whenNeedToGetSize(long size) {
-        whenNeedToGetSize(HeadObjectResponse.builder().contentLength(size).build());
     }
 
     void whenNeedToGetObject(ResponseInputStream<GetObjectResponse> stream) {
@@ -89,24 +78,6 @@ class MultiPartDownloadHandlerTest {
 
         assertThat(target).isNotEqualTo(another).doesNotHaveSameHashCodeAs(another)
                           .extracting(IFileDescriptorHolder::fileDescriptor).isNotEqualTo(another.fileDescriptor());
-    }
-
-    @Test
-    void size_RequestToGetFileSize_HeadObjectAndExtractContentLength() {
-        long expected = Data.FILE_SIZE;
-
-        whenNeedToGetSize(expected);
-
-        long actual = target.size();
-
-        ArgumentCaptor<HeadObjectRequest> captor = ArgumentCaptor.forClass(HeadObjectRequest.class);
-
-        verify(s3Client).headObject(captor.capture());
-
-        assertThat(captor.getValue()).satisfies(head -> assertThat(head.bucket()).isEqualTo(Data.BUCKET))
-                                     .satisfies(head -> assertThat(head.key()).isEqualTo(Data.KEY));
-
-        assertThat(actual).isEqualTo(expected);
     }
 
     @Test

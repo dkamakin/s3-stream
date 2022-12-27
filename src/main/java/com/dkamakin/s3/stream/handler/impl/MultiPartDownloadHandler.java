@@ -13,7 +13,6 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 
 public class MultiPartDownloadHandler implements IMultiPartDownloadHandler {
 
@@ -38,15 +37,6 @@ public class MultiPartDownloadHandler implements IMultiPartDownloadHandler {
         } catch (IOException e) {
             throw new ReadException(e);
         }
-    }
-
-    @Override
-    public long size() {
-        return fileDescriptor.s3Client().headObject(HeadObjectRequest.builder()
-                                                                     .bucket(fileDescriptor.bucketName())
-                                                                     .key(fileDescriptor.key())
-                                                                     .build())
-                             .contentLength();
     }
 
     @Override

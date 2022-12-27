@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.function.IntSupplier;
 import javax.annotation.concurrent.NotThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -26,6 +28,8 @@ public class MultiPartInputStream extends InputStream {
         static final int RANGE_NOT_SATISFIABLE = 416;
         static final int EOS                   = -1;
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger(MultiPartInputStream.class);
 
     private final IMultiPartDownloadHandler downloadHandler;
     private       long                      readLength;
@@ -118,9 +122,11 @@ public class MultiPartInputStream extends InputStream {
 
     private int handle(S3Exception exception) {
         if (exception.statusCode() == Constant.RANGE_NOT_SATISFIABLE) {
+            LOG.info("Got 416 from S3, treat like an EOS");
             isEnded = true;
             return Constant.EOS;
         } else {
+            LOG.error(exception.getMessage(), exception);
             throw exception;
         }
     }
@@ -133,6 +139,8 @@ public class MultiPartInputStream extends InputStream {
         int read = action.getAsInt();
 
         readLength += read;
+
+        LOG.debug("Read: {}, total read: {}", read, readLength);
 
         return read;
     }
