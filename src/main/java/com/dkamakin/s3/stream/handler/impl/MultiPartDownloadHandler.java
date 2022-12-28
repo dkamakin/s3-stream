@@ -3,7 +3,9 @@ package com.dkamakin.s3.stream.handler.impl;
 import com.dkamakin.s3.stream.exception.ReadException;
 import com.dkamakin.s3.stream.handler.IMultiPartDownloadHandler;
 import com.dkamakin.s3.stream.util.impl.ByteRange;
+import com.dkamakin.s3.stream.util.impl.Constant;
 import com.dkamakin.s3.stream.util.impl.RetryableStreamReader;
+import com.dkamakin.s3.stream.util.impl.S3HttpCodes;
 import com.dkamakin.s3.stream.util.impl.Validator;
 import com.google.common.base.MoreObjects;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 public class MultiPartDownloadHandler implements IMultiPartDownloadHandler {
 
@@ -36,6 +39,8 @@ public class MultiPartDownloadHandler implements IMultiPartDownloadHandler {
             return wrapper.apply(stream).read(target, off, len);
         } catch (IOException e) {
             throw new ReadException(e);
+        } catch (S3Exception e) {
+            return handle(e);
         }
     }
 
@@ -52,6 +57,18 @@ public class MultiPartDownloadHandler implements IMultiPartDownloadHandler {
                                                                    .key(fileDescriptor.key())
                                                                    .range(range)
                                                                    .build());
+    }
+
+    private int handle(S3Exception exception) {
+        if (exception.statusCode() == S3HttpCodes.RANGE_NOT_SATISFIABLE.code()) {
+            LOG.info("Got 416 from S3, treat like an EOS");
+
+            return Constant.EOS;
+        } else {
+            LOG.error(exception.getMessage(), exception);
+
+            throw exception;
+        }
     }
 
     @Override

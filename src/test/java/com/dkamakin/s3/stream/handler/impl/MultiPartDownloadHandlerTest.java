@@ -26,6 +26,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartDownloadHandlerTest {
@@ -59,6 +60,13 @@ class MultiPartDownloadHandlerTest {
         when(streamReader.read(any(), anyInt(), anyInt())).thenThrow(throwable);
     }
 
+    void whenNeedToGetEOS() throws IOException {
+        S3Exception exception = mock(S3Exception.class);
+        when(exception.statusCode()).thenReturn(416);
+
+        whenNeedToThrowOnRead(exception);
+    }
+
     @Test
     void equals_SameDescriptors_Equals() {
         IMultiPartDownloadHandler another = new MultiPartDownloadHandler(new S3FileDescriptor(Data.BUCKET, Data.KEY,
@@ -78,6 +86,28 @@ class MultiPartDownloadHandlerTest {
 
         assertThat(target).isNotEqualTo(another).doesNotHaveSameHashCodeAs(another)
                           .extracting(IFileDescriptorHolder::fileDescriptor).isNotEqualTo(another.fileDescriptor());
+    }
+
+    @Test
+    void getPart_InvalidRange_EOS() throws IOException {
+        whenNeedToGetEOS();
+
+        int length = 10;
+
+        int actual = target.getPart(new ByteRange(0, length), new byte[length], 0, length);
+
+        assertThat(actual).isNegative();
+    }
+
+    @Test
+    void getPart_S3ExceptionNotEOS_RethrowException() throws IOException {
+        byte[]      data     = new byte[1];
+        S3Exception expected = mock(S3Exception.class);
+
+        whenNeedToThrowOnRead(expected);
+
+        assertThatThrownBy(() -> target.getPart(new ByteRange(0, data.length), data, 0, data.length))
+            .isInstanceOf(expected.getClass());
     }
 
     @Test

@@ -29,4 +29,5 @@ public abstract class FileDescriptorBuilder<T> {
     protected S3FileDescriptor buildDescriptor() {
         return new S3FileDescriptor(bucketName, key, s3Client);
     }
+
 }

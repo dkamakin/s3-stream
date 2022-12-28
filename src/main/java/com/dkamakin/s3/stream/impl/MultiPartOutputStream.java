@@ -46,7 +46,7 @@ public class MultiPartOutputStream extends OutputStream {
      */
     @Override
     public void write(int data) {
-        flushable(stream -> stream.write(data));
+        tryFlush(stream -> stream.write(data));
     }
 
     /**
@@ -70,7 +70,7 @@ public class MultiPartOutputStream extends OutputStream {
      */
     @Override
     public void write(byte[] data, int offset, int length) {
-        flushable(stream -> stream.write(data, offset, length));
+        tryFlush(stream -> stream.write(data, offset, length));
     }
 
     /**
@@ -120,12 +120,43 @@ public class MultiPartOutputStream extends OutputStream {
         return buffer.size();
     }
 
-    private void flushable(Consumer<RedirectableOutputStream> streamAction) {
+    /**
+     * Creating a new ouput stream builder instance
+     *
+     * @return builder
+     */
+    public static IMultiPartOutputStreamBuilder builder() {
+        return new MultiPartOutputStreamBuilder();
+    }
+
+    /**
+     * Wrapper over {@link MultiPartOutputStream#size()} allows to decide whether buffer is empty
+     *
+     * @return true if buffer is empty
+     */
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    /**
+     * Wrapper over {@link MultiPartOutputStream#isEmpty()} allows to decide whether buffer is not empty
+     *
+     * @return true if buffer is not empty
+     */
+    public boolean isNotEmpty() {
+        return !isEmpty();
+    }
+
+    private void tryFlush(Consumer<RedirectableOutputStream> streamAction) {
         streamAction.accept(buffer);
 
-        if (isBufferExceedsMinPartSize()) {
+        if (isNeedToFlush()) {
             flush();
         }
+    }
+
+    private boolean isNeedToFlush() {
+        return isBufferExceedsMinPartSize();
     }
 
     private boolean isBufferExceedsMinPartSize() {
@@ -135,24 +166,16 @@ public class MultiPartOutputStream extends OutputStream {
     private void upload() {
         if (isNotEmpty()) {
             LOG.info("Uploading data, size: {}", size());
-            uploadHandler.upload(RequestBody.fromInputStream(buffer.redirect(), buffer.size()));
+            uploadHandler.upload(getRequestBody());
         }
+    }
+
+    private RequestBody getRequestBody() {
+        return RequestBody.fromInputStream(buffer.redirect(), buffer.size());
     }
 
     private void resetBuffer() {
         buffer = new RedirectableOutputStream(minPartSize);
-    }
-
-    public static IMultiPartOutputStreamBuilder builder() {
-        return new MultiPartOutputStreamBuilder();
-    }
-
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
-    public boolean isNotEmpty() {
-        return !isEmpty();
     }
 
     @Override

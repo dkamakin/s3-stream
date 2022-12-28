@@ -7,6 +7,7 @@ import com.dkamakin.s3.stream.impl.MultiPartOutputStreamBuilder.Constant;
 import com.dkamakin.s3.stream.util.impl.Bytes;
 import com.dkamakin.s3.stream.util.impl.RedirectableOutputStream;
 import com.google.common.io.ByteStreams;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -115,10 +116,14 @@ class MultiPartOutputStreamIntegrationTest extends MinioIntegrationTest {
         int length    = argument.length.toBytes();
         int chunkSize = argument.chunkSize.toBytes();
 
-        for (int i = 0; i < length; i += chunkSize) {
-            byte[] chunk = RandomUtils.nextBytes(chunkSize);
-            buffer.write(chunk);
-            stream.write(chunk);
+        try {
+            for (int i = 0; i < length; i += chunkSize) {
+                byte[] chunk = RandomUtils.nextBytes(chunkSize);
+                buffer.write(chunk);
+                stream.write(chunk);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

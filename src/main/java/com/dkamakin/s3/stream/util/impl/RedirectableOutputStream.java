@@ -12,16 +12,15 @@ public class RedirectableOutputStream extends ByteArrayOutputStream {
     }
 
     @Override
-    public void write(byte[] b) {
-        write(b, 0, b.length);
-    }
-
-    @Override
     public synchronized byte[] toByteArray() {
         return buf;
     }
 
     public ByteArrayInputStream redirect() {
-        return new ByteArrayInputStream(buf, 0, count);
+        return redirect(0, count);
+    }
+
+    public ByteArrayInputStream redirect(int offset, int count) {
+        return new ByteArrayInputStream(buf, offset, count);
     }
 }
