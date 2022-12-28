@@ -12,6 +12,8 @@ The tests describe quite a lot of different cases, including integration (testco
 
 [Maven Central](https://search.maven.org/artifact/com.dkamakin/s3-stream)
 
+Maven:
+
 ```
 <dependency>
   <groupId>com.dkamakin</groupId>
@@ -19,6 +21,8 @@ The tests describe quite a lot of different cases, including integration (testco
   <version>1.0.3</version>
 </dependency>
 ```
+
+Gradle:
 
 ```
 implementation 'com.dkamakin:s3-stream:1.0.3'
@@ -30,24 +34,20 @@ implementation 'com.dkamakin:s3-stream:1.0.3'
    an [OutputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartOutputStream.html)
 
 ```
-MultiPartOutputStream stream(String key, String bucketName, S3Client s3Client) {
-    return MultiPartOutputStream.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .client(s3Client)
-                                .build();
-}
+return MultiPartOutputStream.builder()
+                           .bucket(bucketName)
+                           .key(key)
+                           .client(s3Client)
+                           .build();
 ```
 
 2. Creating
    an [InputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartInputStream.html)
 
 ```
-MultiPartInputStream stream(String key, String bucketName, S3Client s3Client) {
-    return MultiPartInputStream.builder()
-                               .bucket(bucketName)
-                               .key(key)
-                               .client(s3Client)
-                               .build();
-}
+return MultiPartInputStream.builder()
+                          .bucket(bucketName)
+                          .key(key)
+                          .client(s3Client)
+                          .build();
 ```
