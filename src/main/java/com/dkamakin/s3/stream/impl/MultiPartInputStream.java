@@ -3,16 +3,16 @@ package com.dkamakin.s3.stream.impl;
 import com.dkamakin.s3.stream.IMultiPartInputStreamBuilder;
 import com.dkamakin.s3.stream.handler.IMultiPartDownloadHandler;
 import com.dkamakin.s3.stream.handler.impl.S3FileDescriptor;
+import com.dkamakin.s3.stream.util.ObjIntFunction;
 import com.dkamakin.s3.stream.util.impl.ByteRange;
+import com.dkamakin.s3.stream.util.impl.Constant;
 import com.google.common.base.MoreObjects;
 import java.io.InputStream;
 import java.util.Objects;
-import java.util.function.IntSupplier;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Allows you to download files from S3 without the need to know file size, caching or storing the entire object in the
@@ -23,17 +23,11 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @NotThreadSafe
 public class MultiPartInputStream extends InputStream {
 
-    static class Constant {
-
-        static final int RANGE_NOT_SATISFIABLE = 416;
-        static final int EOS                   = -1;
-    }
-
     private static final Logger LOG = LoggerFactory.getLogger(MultiPartInputStream.class);
 
     private final IMultiPartDownloadHandler downloadHandler;
     private       long                      readLength;
-    private       boolean                   isEnded;
+    private       boolean                   isEOS;
 
     protected MultiPartInputStream(IMultiPartDownloadHandler downloadHandler) {
         this.downloadHandler = downloadHandler;
@@ -75,19 +69,11 @@ public class MultiPartInputStream extends InputStream {
      */
     @Override
     public int read(byte[] data, int offset, int length) {
-        if (isEnded) {
+        if (isEOS) {
             return Constant.EOS;
         }
 
-        int read;
-
-        try {
-            read = logReadLength(() -> downloadHandler.getPart(getRange(length), data, offset, length));
-        } catch (S3Exception e) {
-            read = handle(e);
-        }
-
-        return read;
+        return validate(handler -> handler.getPart(getRange(length), data, offset, length));
     }
 
     /**
@@ -116,33 +102,41 @@ public class MultiPartInputStream extends InputStream {
         return downloadHandler.fileDescriptor();
     }
 
+    /**
+     * Creating a new input stream builder instance
+     *
+     * @return builder
+     */
     public static IMultiPartInputStreamBuilder builder() {
         return new MultiPartInputStreamBuilder();
-    }
-
-    private int handle(S3Exception exception) {
-        if (exception.statusCode() == Constant.RANGE_NOT_SATISFIABLE) {
-            LOG.info("Got 416 from S3, treat like an EOS");
-            isEnded = true;
-            return Constant.EOS;
-        } else {
-            LOG.error(exception.getMessage(), exception);
-            throw exception;
-        }
     }
 
     private ByteRange getRange(int requestedLength) {
         return new ByteRange(readLength, readLength + requestedLength);
     }
 
-    private int logReadLength(IntSupplier action) {
-        int read = action.getAsInt();
+    private int validate(ObjIntFunction<IMultiPartDownloadHandler> streamAction) {
+        int read = streamAction.apply(downloadHandler);
 
-        readLength += read;
+        LOG.debug("Read: {}", read);
 
-        LOG.debug("Read: {}, total read: {}", read, readLength);
+        if (isEOS(read)) {
+            setEOS();
+        } else {
+            readLength += read;
+        }
+
+        LOG.debug("Total read: {}", readLength);
 
         return read;
+    }
+
+    private void setEOS() {
+        isEOS = true;
+    }
+
+    private boolean isEOS(int read) {
+        return read == Constant.EOS;
     }
 
     @Override
