@@ -34,20 +34,20 @@ implementation 'com.dkamakin:s3-stream:1.0.3'
    an [OutputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartOutputStream.html)
 
 ```
-return MultiPartOutputStream.builder()
-                           .bucket(bucketName)
-                           .key(key)
-                           .client(s3Client)
-                           .build();
+MultiPartOutputStream.builder()
+                     .bucket(bucketName)
+                     .key(key)
+                     .client(s3Client)
+                     .build();
 ```
 
 2. Creating
    an [InputStream](https://dkamakin.github.io/s3-stream/javadoc/apidocs/com/dkamakin/s3/stream/impl/MultiPartInputStream.html)
 
 ```
-return MultiPartInputStream.builder()
-                          .bucket(bucketName)
-                          .key(key)
-                          .client(s3Client)
-                          .build();
+MultiPartInputStream.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .client(s3Client)
+                    .build();
 ```
