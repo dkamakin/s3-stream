@@ -19,16 +19,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartInputStreamTest {
 
     static final class Data {
-
-        static class TestException extends RuntimeException {
-
-        }
 
         static final int FILE_SIZE = 100;
     }
@@ -44,17 +39,6 @@ class MultiPartInputStreamTest {
 
     void whenNeedToRead(Integer first, Integer... others) {
         when(downloadHandler.getPart(any(), any(), anyInt(), anyInt())).thenReturn(first, others);
-    }
-
-    void whenNeedToGetEOS() {
-        S3Exception exception = mock(S3Exception.class);
-        when(exception.statusCode()).thenReturn(416);
-
-        whenNeedToGetException(exception);
-    }
-
-    void whenNeedToGetException(Throwable exception) {
-        when(downloadHandler.getPart(any(), any(), anyInt(), anyInt())).thenThrow(exception);
     }
 
     @Test
@@ -98,22 +82,12 @@ class MultiPartInputStreamTest {
     }
 
     @Test
-    void read_ExceptionOccurred_Rethrow() {
-        byte[]      data     = new byte[1];
-        S3Exception expected = mock(S3Exception.class);
-
-        whenNeedToGetException(expected);
-
-        assertThatThrownBy(() -> target.read(data)).isInstanceOf(expected.getClass());
-    }
-
-    @Test
     void read_OverflowFileSize_EOS() {
         whenNeedToRead(Data.FILE_SIZE);
 
         target.read(new byte[Data.FILE_SIZE]);
 
-        whenNeedToGetEOS();
+        whenNeedToRead(-1);
 
         int actual        = target.read(new byte[10]);
         int secondAttempt = target.read(new byte[10]);

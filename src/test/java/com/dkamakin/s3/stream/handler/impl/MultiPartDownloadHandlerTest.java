@@ -26,17 +26,15 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
 class MultiPartDownloadHandlerTest {
 
     static class Data {
 
-        static final String KEY       = "key";
-        static final String BUCKET    = "bucket";
-        static final long   FILE_SIZE = 100L;
+        static final String KEY    = "key";
+        static final String BUCKET = "bucket";
     }
 
     @Mock S3Client              s3Client;
@@ -54,20 +52,19 @@ class MultiPartDownloadHandlerTest {
         return streamReader;
     }
 
-    void whenNeedToGetSize(HeadObjectResponse response) {
-        when(s3Client.headObject((HeadObjectRequest) any())).thenReturn(response);
-    }
-
-    void whenNeedToGetSize(long size) {
-        whenNeedToGetSize(HeadObjectResponse.builder().contentLength(size).build());
-    }
-
     void whenNeedToGetObject(ResponseInputStream<GetObjectResponse> stream) {
         when(s3Client.getObject((GetObjectRequest) any())).thenReturn(stream);
     }
 
     void whenNeedToThrowOnRead(Throwable throwable) throws IOException {
         when(streamReader.read(any(), anyInt(), anyInt())).thenThrow(throwable);
+    }
+
+    void whenNeedToGetEOS() throws IOException {
+        S3Exception exception = mock(S3Exception.class);
+        when(exception.statusCode()).thenReturn(416);
+
+        whenNeedToThrowOnRead(exception);
     }
 
     @Test
@@ -92,21 +89,25 @@ class MultiPartDownloadHandlerTest {
     }
 
     @Test
-    void size_RequestToGetFileSize_HeadObjectAndExtractContentLength() {
-        long expected = Data.FILE_SIZE;
+    void getPart_InvalidRange_EOS() throws IOException {
+        whenNeedToGetEOS();
 
-        whenNeedToGetSize(expected);
+        int length = 10;
 
-        long actual = target.size();
+        int actual = target.getPart(new ByteRange(0, length), new byte[length], 0, length);
 
-        ArgumentCaptor<HeadObjectRequest> captor = ArgumentCaptor.forClass(HeadObjectRequest.class);
+        assertThat(actual).isNegative();
+    }
 
-        verify(s3Client).headObject(captor.capture());
+    @Test
+    void getPart_S3ExceptionNotEOS_RethrowException() throws IOException {
+        byte[]      data     = new byte[1];
+        S3Exception expected = mock(S3Exception.class);
 
-        assertThat(captor.getValue()).satisfies(head -> assertThat(head.bucket()).isEqualTo(Data.BUCKET))
-                                     .satisfies(head -> assertThat(head.key()).isEqualTo(Data.KEY));
+        whenNeedToThrowOnRead(expected);
 
-        assertThat(actual).isEqualTo(expected);
+        assertThatThrownBy(() -> target.getPart(new ByteRange(0, data.length), data, 0, data.length))
+            .isInstanceOf(expected.getClass());
     }
 
     @Test
